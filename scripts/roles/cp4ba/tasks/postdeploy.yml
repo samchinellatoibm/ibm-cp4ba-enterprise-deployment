@@ -316,153 +316,153 @@
     common_delay: 15
 
 # Based on https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/21.0.3?topic=gst-task-2-connecting-git-repository-sharing-decision-service
-- name: Create ADS organization in Gitea
-  ansible.builtin.uri:
-    url: "https://gitea.{{ apps_endpoint_domain }}/api/v1/orgs"
-    method: POST
-    headers:
-      Content-Type: application/json
-    body_format: json
-    body:
-      description: ""
-      full_name: ""
-      location: ""
-      repo_admin_change_team_access: true
-      username: ads
-      visibility: private
-      website: ""
-    user: cpadmin
-    password: "{{ cp4ba_universal_password }}"
-    force_basic_auth: true
-    validate_certs: false
-    status_code:
-      - 201
-      - 422
+# - name: Create ADS organization in Gitea
+#   ansible.builtin.uri:
+#     url: "https://gitea.{{ apps_endpoint_domain }}/api/v1/orgs"
+#     method: POST
+#     headers:
+#       Content-Type: application/json
+#     body_format: json
+#     body:
+#       description: ""
+#       full_name: ""
+#       location: ""
+#       repo_admin_change_team_access: true
+#       username: ads
+#       visibility: private
+#       website: ""
+#     user: cpadmin
+#     password: "{{ cp4ba_universal_password }}"
+#     force_basic_auth: true
+#     validate_certs: false
+#     status_code:
+#       - 201
+#       - 422
 
-- name: Get maven plugins definition from ADS
-  ansible.builtin.uri:
-    url: "https://cpd-{{ cp4ba_project_name }}.{{ apps_endpoint_domain }}/ads/download/index.json"
-    method: GET
-    headers:
-      Authorization: "Bearer {{ token_response.json | json_query('token') }}"
-    validate_certs: false
-    status_code: 200
-  register: ads_maven_plugins_response
+# - name: Get maven plugins definition from ADS
+#   ansible.builtin.uri:
+#     url: "https://cpd-{{ cp4ba_project_name }}.{{ apps_endpoint_domain }}/ads/download/index.json"
+#     method: GET
+#     headers:
+#       Authorization: "Bearer {{ token_response.json | json_query('token') }}"
+#     validate_certs: false
+#     status_code: 200
+#   register: ads_maven_plugins_response
 
-- name: Process ADS maven plugins
-  include_tasks: ads-maven-plugins.yml
-  with_dict: "{{ ads_maven_plugins_response.json | json_query('resources') }}"
+# - name: Process ADS maven plugins
+#   include_tasks: ads-maven-plugins.yml
+#   with_dict: "{{ ads_maven_plugins_response.json | json_query('resources') }}"
 
-- name: Get roles
-  ansible.builtin.uri:
-    url: "https://cpd-{{ cp4ba_project_name }}.{{ apps_endpoint_domain }}/usermgmt/v1/roles"
-    method: GET
-    headers:
-      Authorization: "Bearer {{ token_response.json | json_query('token') }}"
-    validate_certs: false
-    status_code: 200
-  register: roles_response
+# - name: Get roles
+#   ansible.builtin.uri:
+#     url: "https://cpd-{{ cp4ba_project_name }}.{{ apps_endpoint_domain }}/usermgmt/v1/roles"
+#     method: GET
+#     headers:
+#       Authorization: "Bearer {{ token_response.json | json_query('token') }}"
+#     validate_certs: false
+#     status_code: 200
+#   register: roles_response
 
-- name: Retrieve existing ADS admin role ID
-  ansible.builtin.set_fact:
-    ads_admin_role_id: "{{ roles_response.json | json_query(condition_query) | first | default('', true) }}"
-  vars:
-    condition_query:
-      "rows[?doc.role_name == 'ADS Admin'].id"
+# - name: Retrieve existing ADS admin role ID
+#   ansible.builtin.set_fact:
+#     ads_admin_role_id: "{{ roles_response.json | json_query(condition_query) | first | default('', true) }}"
+#   vars:
+#     condition_query:
+#       "rows[?doc.role_name == 'ADS Admin'].id"
 
-- name: Create ADS admin role
-  block:
+# - name: Create ADS admin role
+#   block:
 
-    # Based on https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/21.0.3?topic=services-managing-user-permissions
-    - name: Create ADS admin role
-      ansible.builtin.uri:
-        url: "https://cpd-{{ cp4ba_project_name }}.{{ apps_endpoint_domain }}/usermgmt/v1/role"
-        method: POST
-        headers:
-          Authorization: "Bearer {{ token_response.json | json_query('token') }}"
-        body_format: json
-        body:
-          role_name: ADS Admin
-          description: ""
-          permissions:
-            - administer_ads_platform
-            - execute_ads_decision
-            - manage_ads_decision
-            - monitor_ads_runtime
-        validate_certs: false
-        status_code: 201
-      register: admin_role_response
+#     # Based on https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/21.0.3?topic=services-managing-user-permissions
+#     - name: Create ADS admin role
+#       ansible.builtin.uri:
+#         url: "https://cpd-{{ cp4ba_project_name }}.{{ apps_endpoint_domain }}/usermgmt/v1/role"
+#         method: POST
+#         headers:
+#           Authorization: "Bearer {{ token_response.json | json_query('token') }}"
+#         body_format: json
+#         body:
+#           role_name: ADS Admin
+#           description: ""
+#           permissions:
+#             - administer_ads_platform
+#             - execute_ads_decision
+#             - manage_ads_decision
+#             - monitor_ads_runtime
+#         validate_certs: false
+#         status_code: 201
+#       register: admin_role_response
 
-    - name: Set ADS admin role ID
-      ansible.builtin.set_fact:
-        ads_admin_role_id: "{{ admin_role_response.json | json_query('id') }}"
+#     - name: Set ADS admin role ID
+#       ansible.builtin.set_fact:
+#         ads_admin_role_id: "{{ admin_role_response.json | json_query('id') }}"
 
-  when: ads_admin_role_id | length == 0
+#   when: ads_admin_role_id | length == 0
 
-- name: Get groups
-  ansible.builtin.uri:
-    url: "https://cpd-{{ cp4ba_project_name }}.{{ apps_endpoint_domain }}/usermgmt/v2/groups"
-    method: GET
-    headers:
-      Authorization: "Bearer {{ token_response.json | json_query('token') }}"
-    validate_certs: false
-    status_code: 200
-  register: groups_response
+# - name: Get groups
+#   ansible.builtin.uri:
+#     url: "https://cpd-{{ cp4ba_project_name }}.{{ apps_endpoint_domain }}/usermgmt/v2/groups"
+#     method: GET
+#     headers:
+#       Authorization: "Bearer {{ token_response.json | json_query('token') }}"
+#     validate_certs: false
+#     status_code: 200
+#   register: groups_response
 
-- name: Get cpadmins group id
-  ansible.builtin.set_fact:
-    cpadmins_group_id: "{{ groups_response.json | json_query(condition_query) | first }}"
-  vars:
-    condition_query: "results[?name == 'cpadmins'].group_id"
+# - name: Get cpadmins group id
+#   ansible.builtin.set_fact:
+#     cpadmins_group_id: "{{ groups_response.json | json_query(condition_query) | first }}"
+#   vars:
+#     condition_query: "results[?name == 'cpadmins'].group_id"
 
-- name: Add ADS Admin role to cpadmins group
-  ansible.builtin.uri:
-    url: "https://cpd-{{ cp4ba_project_name }}.{{ apps_endpoint_domain }}/usermgmt/v2/groups/{{ cpadmins_group_id }}"
-    method: PATCH
-    headers:
-      Authorization: "Bearer {{ token_response.json | json_query('token') }}"
-    body_format: json
-    body:
-      add_role_identifiers:
-        - "{{ ads_admin_role_id }}"
-    validate_certs: false
-    status_code:
-      - 200
-      - 500
-  register: group_response
-  failed_when: group_response.status == 500 and group_response.json | json_query('exception') is not search('.*duplicate key value*')
+# - name: Add ADS Admin role to cpadmins group
+#   ansible.builtin.uri:
+#     url: "https://cpd-{{ cp4ba_project_name }}.{{ apps_endpoint_domain }}/usermgmt/v2/groups/{{ cpadmins_group_id }}"
+#     method: PATCH
+#     headers:
+#       Authorization: "Bearer {{ token_response.json | json_query('token') }}"
+#     body_format: json
+#     body:
+#       add_role_identifiers:
+#         - "{{ ads_admin_role_id }}"
+#     validate_certs: false
+#     status_code:
+#       - 200
+#       - 500
+#   register: group_response
+#   failed_when: group_response.status == 500 and group_response.json | json_query('exception') is not search('.*duplicate key value*')
 
-- name: Add ADS Admin role to default admin user
-  ansible.builtin.uri:
-    url: "https://cpd-{{ cp4ba_project_name }}.{{ apps_endpoint_domain }}/usermgmt/v1/user/admin?add_roles=true"
-    method: PUT
-    headers:
-      Authorization: "Bearer {{ token_response.json | json_query('token') }}"
-    body_format: json
-    body:
-      username: cpadmin
-      user_roles:
-        - "{{ ads_admin_role_id }}"
-    validate_certs: false
-    status_code:
-      - 200
+# - name: Add ADS Admin role to default admin user
+#   ansible.builtin.uri:
+#     url: "https://cpd-{{ cp4ba_project_name }}.{{ apps_endpoint_domain }}/usermgmt/v1/user/admin?add_roles=true"
+#     method: PUT
+#     headers:
+#       Authorization: "Bearer {{ token_response.json | json_query('token') }}"
+#     body_format: json
+#     body:
+#       username: cpadmin
+#       user_roles:
+#         - "{{ ads_admin_role_id }}"
+#     validate_certs: false
+#     status_code:
+#       - 200
 
-# Based on https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/21.0.3?topic=credentials-configuring-maven-repository-manager
-- name: Add Maven credential
-  ansible.builtin.uri:
-    url: "https://cpd-{{ cp4ba_project_name }}.{{ apps_endpoint_domain }}/ads/rest-api/api/admin/credential"
-    method: POST
-    headers:
-      Authorization: "Bearer {{ token_response.json | json_query('token') }}"
-    body_format: json
-    body:
-      credentialsType: USERNAME
-      credentialsUsage: MAVEN
-      discriminator": "https://nexus.{{ apps_endpoint_domain }}/repository/maven-releases/"
-      credentials": "cpadmin:{{ cp4ba_universal_password }}"
-    validate_certs: false
-    status_code: 200
-  register: ads_credential_response
+# # Based on https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/21.0.3?topic=credentials-configuring-maven-repository-manager
+# - name: Add Maven credential
+#   ansible.builtin.uri:
+#     url: "https://cpd-{{ cp4ba_project_name }}.{{ apps_endpoint_domain }}/ads/rest-api/api/admin/credential"
+#     method: POST
+#     headers:
+#       Authorization: "Bearer {{ token_response.json | json_query('token') }}"
+#     body_format: json
+#     body:
+#       credentialsType: USERNAME
+#       credentialsUsage: MAVEN
+#       discriminator": "https://nexus.{{ apps_endpoint_domain }}/repository/maven-releases/"
+#       credentials": "cpadmin:{{ cp4ba_universal_password }}"
+#     validate_certs: false
+#     status_code: 200
+#   register: ads_credential_response
 
 - name: Create ADP organization in Gitea
   ansible.builtin.uri:
@@ -588,77 +588,77 @@
   register: command_status
 
 # Create Route for IER CPE configuration
-- name: Prepare yaml file for ierconfig Route
-  ansible.builtin.template:
-    src: ier/ier-cpe-route.yaml.j2
-    dest: "{{ cp4ba_output_directory }}/ier-cpe-route.yaml"
-    mode: u+rwx
+# - name: Prepare yaml file for ierconfig Route
+#   ansible.builtin.template:
+#     src: ier/ier-cpe-route.yaml.j2
+#     dest: "{{ cp4ba_output_directory }}/ier-cpe-route.yaml"
+#     mode: u+rwx
 
-- name: Create ierconfig Route
-  kubernetes.core.k8s:
-    api_key: "{{ cp4ba_k8s_api_key | default(omit) }}"
-    host: "{{ cp4ba_k8s_host | default(omit) }}"
-    state: present
-    force: false
-    merge_type: merge
-    namespace: "{{ cp4ba_project_name }}"
-    src: "{{ cp4ba_output_directory }}/ier-cpe-route.yaml"
-    wait: true
-    wait_sleep: 15
-    wait_timeout: 15
+# - name: Create ierconfig Route
+#   kubernetes.core.k8s:
+#     api_key: "{{ cp4ba_k8s_api_key | default(omit) }}"
+#     host: "{{ cp4ba_k8s_host | default(omit) }}"
+#     state: present
+#     force: false
+#     merge_type: merge
+#     namespace: "{{ cp4ba_project_name }}"
+#     src: "{{ cp4ba_output_directory }}/ier-cpe-route.yaml"
+#     wait: true
+#     wait_sleep: 15
+#     wait_timeout: 15
 
-- name: Wait for resource condition generic
-  ansible.builtin.include_role:
-    name: common
-    tasks_from: wait-resource-condition-generic
-  vars:
-    common_k8s_api_key: "{{ cp4ba_k8s_api_key | default(omit) }}"
-    common_k8s_host: "{{ cp4ba_k8s_host | default(omit) }}"
-    common_api_version: route.openshift.io/v1
-    common_resource_kind: Route
-    common_resource_name: ierconfig
-    common_resource_namespace: "{{ cp4ba_project_name }}"
-    common_condition_query: resources[*].status.ingress[0].conditions[0].status
-    common_condition_value: 'True'
-    common_retries: 10
-    common_delay: 10
+# - name: Wait for resource condition generic
+#   ansible.builtin.include_role:
+#     name: common
+#     tasks_from: wait-resource-condition-generic
+#   vars:
+#     common_k8s_api_key: "{{ cp4ba_k8s_api_key | default(omit) }}"
+#     common_k8s_host: "{{ cp4ba_k8s_host | default(omit) }}"
+#     common_api_version: route.openshift.io/v1
+#     common_resource_kind: Route
+#     common_resource_name: ierconfig
+#     common_resource_namespace: "{{ cp4ba_project_name }}"
+#     common_condition_query: resources[*].status.ingress[0].conditions[0].status
+#     common_condition_value: 'True'
+#     common_retries: 10
+#     common_delay: 10
 
-- name: Create a directory for IER config
-  ansible.builtin.file:
-    path: "{{ cp4ba_output_directory }}/ierconfig"
-    state: directory
-    mode: u+rwx
+# - name: Create a directory for IER config
+#   ansible.builtin.file:
+#     path: "{{ cp4ba_output_directory }}/ierconfig"
+#     state: directory
+#     mode: u+rwx
 
-- name: Extract IER config
-  ansible.builtin.unarchive:
-    src: "files/ier/ierconfig.tgz"
-    dest: "{{ cp4ba_output_directory }}/ierconfig"
+# - name: Extract IER config
+#   ansible.builtin.unarchive:
+#     src: "files/ier/ierconfig.tgz"
+#     dest: "{{ cp4ba_output_directory }}/ierconfig"
 
-- name: Template ierconfig/configure/configuration/config.ini
-  ansible.builtin.template:
-    src: "{{ cp4ba_output_directory }}/ierconfig/configure/configuration/config.ini"
-    dest: "{{ cp4ba_output_directory }}/ierconfig/configure/configuration/config.ini"
-    mode: u+rwx
+# - name: Template ierconfig/configure/configuration/config.ini
+#   ansible.builtin.template:
+#     src: "{{ cp4ba_output_directory }}/ierconfig/configure/configuration/config.ini"
+#     dest: "{{ cp4ba_output_directory }}/ierconfig/configure/configuration/config.ini"
+#     mode: u+rwx
 
-- name: Template ierconfig/configure/profiles/configureWorkflows.xml
-  ansible.builtin.template:
-    src: "{{ cp4ba_output_directory }}/ierconfig/configure/profiles/configureWorkflows.xml"
-    dest: "{{ cp4ba_output_directory }}/ierconfig/configure/profiles/configureWorkflows.xml"
-    mode: u+rwx
+# - name: Template ierconfig/configure/profiles/configureWorkflows.xml
+#   ansible.builtin.template:
+#     src: "{{ cp4ba_output_directory }}/ierconfig/configure/profiles/configureWorkflows.xml"
+#     dest: "{{ cp4ba_output_directory }}/ierconfig/configure/profiles/configureWorkflows.xml"
+#     mode: u+rwx
 
-- name: Template ierconfig/configure/profiles/createMarkingSetsAndAddOns.xml
-  ansible.builtin.template:
-    src: "{{ cp4ba_output_directory }}/ierconfig/configure/profiles/createMarkingSetsAndAddOns.xml"
-    dest: "{{ cp4ba_output_directory }}/ierconfig/configure/profiles/createMarkingSetsAndAddOns.xml"
-    mode: u+rwx
+# - name: Template ierconfig/configure/profiles/createMarkingSetsAndAddOns.xml
+#   ansible.builtin.template:
+#     src: "{{ cp4ba_output_directory }}/ierconfig/configure/profiles/createMarkingSetsAndAddOns.xml"
+#     dest: "{{ cp4ba_output_directory }}/ierconfig/configure/profiles/createMarkingSetsAndAddOns.xml"
+#     mode: u+rwx
 
-- name: Template ierconfig/configure/profiles/environmentObjectStoreConfiguration.xml
-  ansible.builtin.template:
-    src: "{{ cp4ba_output_directory }}/ierconfig/configure/profiles/environmentObjectStoreConfiguration.xml"
-    dest: "{{ cp4ba_output_directory }}/ierconfig/configure/profiles/environmentObjectStoreConfiguration.xml"
-    mode: u+rwx
+# - name: Template ierconfig/configure/profiles/environmentObjectStoreConfiguration.xml
+#   ansible.builtin.template:
+#     src: "{{ cp4ba_output_directory }}/ierconfig/configure/profiles/environmentObjectStoreConfiguration.xml"
+#     dest: "{{ cp4ba_output_directory }}/ierconfig/configure/profiles/environmentObjectStoreConfiguration.xml"
+#     mode: u+rwx
 
-# Based on https://www.ibm.com/docs/en/cpfs?topic=apis-oidc-registration#get2 (Get access token by using username and password)
+# # Based on https://www.ibm.com/docs/en/cpfs?topic=apis-oidc-registration#get2 (Get access token by using username and password)
 - name: Get IAM access token
   ansible.builtin.uri:
     url: "https://cp-console.{{ apps_endpoint_domain }}/idprovider/v1/auth/identitytoken"
@@ -687,153 +687,153 @@
     status_code: 200
   register: cpadmin_token_response
 
-- name: Create CodeModules folder
-  ansible.builtin.uri:
-    url: "https://cpd-{{ cp4ba_project_name }}.{{ apps_endpoint_domain }}/content-services-graphql/graphql"
-    method: POST
-    headers:
-      Content-Type: application/json
-      Authorization: "Bearer {{ cpadmin_token_response.json | json_query('accessToken') }}"
-    body_format: json
-    body:
-      query: |
-        mutation CreateCodeModulesFolder {createFolder(repositoryIdentifier:
-        "FPOS", folderProperties: {name: "CodeModules", parent: {identifier: "/"} }) {id} }
-    validate_certs: false
-    status_code:
-      - 200
-  register: folder_response
-  failed_when: ( folder_response.json | json_query('errors') | default([], true) | length > 1 ) and
-    ( folder_response.json | json_query('errors[0].extensions.serverErrorMessage')
-      is not match('A uniqueness requirement has been violated. The value for property FolderName of class Folder is not unique.') )
+# - name: Create CodeModules folder
+#   ansible.builtin.uri:
+#     url: "https://cpd-{{ cp4ba_project_name }}.{{ apps_endpoint_domain }}/content-services-graphql/graphql"
+#     method: POST
+#     headers:
+#       Content-Type: application/json
+#       Authorization: "Bearer {{ cpadmin_token_response.json | json_query('accessToken') }}"
+#     body_format: json
+#     body:
+#       query: |
+#         mutation CreateCodeModulesFolder {createFolder(repositoryIdentifier:
+#         "FPOS", folderProperties: {name: "CodeModules", parent: {identifier: "/"} }) {id} }
+#     validate_certs: false
+#     status_code:
+#       - 200
+#   register: folder_response
+#   failed_when: ( folder_response.json | json_query('errors') | default([], true) | length > 1 ) and
+#     ( folder_response.json | json_query('errors[0].extensions.serverErrorMessage')
+#       is not match('A uniqueness requirement has been violated. The value for property FolderName of class Folder is not unique.') )
 
-- name: Execute task createMarkingSetsAndAddOns
-  ansible.builtin.shell: |
-    {{ cp4ba_output_directory }}/ierconfig/configure/configmgr_cl execute -task createMarkingSetsAndAddOns
-  register: ier_configmgr_output
-  changed_when: true
-  failed_when: ier_configmgr_output.rc != 0
+# - name: Execute task createMarkingSetsAndAddOns
+#   ansible.builtin.shell: |
+#     {{ cp4ba_output_directory }}/ierconfig/configure/configmgr_cl execute -task createMarkingSetsAndAddOns
+#   register: ier_configmgr_output
+#   changed_when: true
+#   failed_when: ier_configmgr_output.rc != 0
 
-- name: Execute task configureFPOS
-  ansible.builtin.shell: |
-    {{ cp4ba_output_directory }}/ierconfig/configure/configmgr_cl execute -task configureFPOS
-  register: ier_configmgr_output
-  changed_when: true
-  failed_when: ier_configmgr_output.rc != 0 and
-    (ier_configmgr_output.stdout is not search('.*The current object store is already configured to the latest version.*'))
+# - name: Execute task configureFPOS
+#   ansible.builtin.shell: |
+#     {{ cp4ba_output_directory }}/ierconfig/configure/configmgr_cl execute -task configureFPOS
+#   register: ier_configmgr_output
+#   changed_when: true
+#   failed_when: ier_configmgr_output.rc != 0 and
+#     (ier_configmgr_output.stdout is not search('.*The current object store is already configured to the latest version.*'))
 
-- name: Execute task configureROS
-  ansible.builtin.shell: |
-    {{ cp4ba_output_directory }}/ierconfig/configure/configmgr_cl execute -task configureROS
-  register: ier_configmgr_output
-  changed_when: true
-  failed_when: ier_configmgr_output.rc != 0
+# - name: Execute task configureROS
+#   ansible.builtin.shell: |
+#     {{ cp4ba_output_directory }}/ierconfig/configure/configmgr_cl execute -task configureROS
+#   register: ier_configmgr_output
+#   changed_when: true
+#   failed_when: ier_configmgr_output.rc != 0
 
-- name: Execute task configureWorkflows
-  ansible.builtin.shell: |
-    {{ cp4ba_output_directory }}/ierconfig/configure/configmgr_cl execute -task configureWorkflows
-  register: ier_configmgr_output
-  changed_when: true
-  failed_when: ier_configmgr_output.rc != 0 and
-    (ier_configmgr_output.stdout is not search('.*workflow component queues were configured with FileNet P8 Component Manager.*'))
+# - name: Execute task configureWorkflows
+#   ansible.builtin.shell: |
+#     {{ cp4ba_output_directory }}/ierconfig/configure/configmgr_cl execute -task configureWorkflows
+#   register: ier_configmgr_output
+#   changed_when: true
+#   failed_when: ier_configmgr_output.rc != 0 and
+#     (ier_configmgr_output.stdout is not search('.*workflow component queues were configured with FileNet P8 Component Manager.*'))
 
-- name: Execute task transferWorkflows
-  ansible.builtin.shell: |
-    {{ cp4ba_output_directory }}/ierconfig/configure/configmgr_cl execute -task transferWorkflows
-  register: ier_configmgr_output
-  changed_when: true
-  failed_when: ier_configmgr_output.rc != 0
+# - name: Execute task transferWorkflows
+#   ansible.builtin.shell: |
+#     {{ cp4ba_output_directory }}/ierconfig/configure/configmgr_cl execute -task transferWorkflows
+#   register: ier_configmgr_output
+#   changed_when: true
+#   failed_when: ier_configmgr_output.rc != 0
 
-- name: Copy AdditionalJars.tgz
-  ansible.builtin.copy:
-    src: "files/ier/AdditionalJars.tgz"
-    dest: "{{ cp4ba_output_directory }}/AdditionalJars.tgz"
-    mode: u+rwx
+# - name: Copy AdditionalJars.tgz
+#   ansible.builtin.copy:
+#     src: "files/ier/AdditionalJars.tgz"
+#     dest: "{{ cp4ba_output_directory }}/AdditionalJars.tgz"
+#     mode: u+rwx
 
-# This is needed as ansible k8s_cp is not reliable for larger files
-- name: Nexus upload AdditionalJars.tgz
-  ansible.builtin.include_role:
-    name: common
-    tasks_from: nexus-upload
-  vars:
-    common_k8s_api_key: "{{ cp4ba_k8s_api_key | default(omit) }}"
-    common_k8s_host: "{{ cp4ba_k8s_host | default(omit) }}"
-    common_file_folder_path: "{{ cp4ba_output_directory }}"
-    common_file_name: AdditionalJars.tgz
-    common_universal_password: "{{ cp4ba_universal_password }}"
+# # This is needed as ansible k8s_cp is not reliable for larger files
+# - name: Nexus upload AdditionalJars.tgz
+#   ansible.builtin.include_role:
+#     name: common
+#     tasks_from: nexus-upload
+#   vars:
+#     common_k8s_api_key: "{{ cp4ba_k8s_api_key | default(omit) }}"
+#     common_k8s_host: "{{ cp4ba_k8s_host | default(omit) }}"
+#     common_file_folder_path: "{{ cp4ba_output_directory }}"
+#     common_file_name: AdditionalJars.tgz
+#     common_universal_password: "{{ cp4ba_universal_password }}"
 
-- name: Get TM pod
-  kubernetes.core.k8s_info:
-    api_key: "{{ cp4ba_k8s_api_key | default(omit) }}"
-    host: "{{ cp4ba_k8s_host | default(omit) }}"
-    api_version: v1
-    kind: Pod
-    namespace: "{{ cp4ba_project_name }}"
-    label_selectors:
-      - "app={{ cp4ba_cr_meta_name }}-tm-deploy"
-  register: tm_pod
+# - name: Get TM pod
+#   kubernetes.core.k8s_info:
+#     api_key: "{{ cp4ba_k8s_api_key | default(omit) }}"
+#     host: "{{ cp4ba_k8s_host | default(omit) }}"
+#     api_version: v1
+#     kind: Pod
+#     namespace: "{{ cp4ba_project_name }}"
+#     label_selectors:
+#       - "app={{ cp4ba_cr_meta_name }}-tm-deploy"
+#   register: tm_pod
 
-# Based on https://www.ibm.com/docs/en/enterprise-records/5.2.1?topic=in-configuring-content-navigator-task-manager-enterprise-records
-# Omit TM-Liberty.xml as it is already in cp4ba-tm-config
-- name: Download AdditionalJars.tgz to TM Pod
-  kubernetes.core.k8s_exec:
-    api_key: "{{ cp4ba_k8s_api_key | default(omit) }}"
-    host: "{{ cp4ba_k8s_host | default(omit) }}"
-    namespace: "{{ cp4ba_project_name }}"
-    pod: "{{ tm_pod.resources[0].metadata.name }}"
-    command: >
-      curl -kv --user "cpadmin:{{ cp4ba_universal_password }}" http://{{ nexus_hostname }}:8081/repository/raw-hosted/cp4ba/AdditionalJars.tgz
-      --output /tmp/AdditionalJars.tgz
-  register: command_status
+# # Based on https://www.ibm.com/docs/en/enterprise-records/5.2.1?topic=in-configuring-content-navigator-task-manager-enterprise-records
+# # Omit TM-Liberty.xml as it is already in cp4ba-tm-config
+# - name: Download AdditionalJars.tgz to TM Pod
+#   kubernetes.core.k8s_exec:
+#     api_key: "{{ cp4ba_k8s_api_key | default(omit) }}"
+#     host: "{{ cp4ba_k8s_host | default(omit) }}"
+#     namespace: "{{ cp4ba_project_name }}"
+#     pod: "{{ tm_pod.resources[0].metadata.name }}"
+#     command: >
+#       curl -kv --user "cpadmin:{{ cp4ba_universal_password }}" http://{{ nexus_hostname }}:8081/repository/raw-hosted/cp4ba/AdditionalJars.tgz
+#       --output /tmp/AdditionalJars.tgz
+#   register: command_status
 
-- name: Extract AdditionalJars.tgz to TM Pod
-  kubernetes.core.k8s_exec:
-    api_key: "{{ cp4ba_k8s_api_key | default(omit) }}"
-    host: "{{ cp4ba_k8s_host | default(omit) }}"
-    namespace: "{{ cp4ba_project_name }}"
-    pod: "{{ tm_pod.resources[0].metadata.name }}"
-    command: >
-      tar xvf /tmp/AdditionalJars.tgz -C /opt/ibm/extTM
-  register: command_status
+# - name: Extract AdditionalJars.tgz to TM Pod
+#   kubernetes.core.k8s_exec:
+#     api_key: "{{ cp4ba_k8s_api_key | default(omit) }}"
+#     host: "{{ cp4ba_k8s_host | default(omit) }}"
+#     namespace: "{{ cp4ba_project_name }}"
+#     pod: "{{ tm_pod.resources[0].metadata.name }}"
+#     command: >
+#       tar xvf /tmp/AdditionalJars.tgz -C /opt/ibm/extTM
+#   register: command_status
 
-- name: Get TM Pods
-  kubernetes.core.k8s_info:
-    api_key: "{{ cp4ba_k8s_api_key | default(omit) }}"
-    host: "{{ cp4ba_k8s_host | default(omit) }}"
-    api_version: v1
-    kind: Pod
-    namespace: "{{ cp4ba_project_name }}"
-    label_selectors:
-      - "app={{ cp4ba_cr_meta_name }}-tm-deploy"
-  register: pods
-  retries: 40
-  delay: 15
+# - name: Get TM Pods
+#   kubernetes.core.k8s_info:
+#     api_key: "{{ cp4ba_k8s_api_key | default(omit) }}"
+#     host: "{{ cp4ba_k8s_host | default(omit) }}"
+#     api_version: v1
+#     kind: Pod
+#     namespace: "{{ cp4ba_project_name }}"
+#     label_selectors:
+#       - "app={{ cp4ba_cr_meta_name }}-tm-deploy"
+#   register: pods
+#   retries: 40
+#   delay: 15
 
-- name: Delete TM pods
-  kubernetes.core.k8s:
-    api_key: "{{ cp4ba_k8s_api_key | default(omit) }}"
-    host: "{{ cp4ba_k8s_host | default(omit) }}"
-    api_version: v1
-    kind: Pod
-    state: absent
-    namespace: "{{ cp4ba_project_name }}"
-    name: "{{ item.metadata.name }}"
-  loop: "{{ pods.resources }}"
+# - name: Delete TM pods
+#   kubernetes.core.k8s:
+#     api_key: "{{ cp4ba_k8s_api_key | default(omit) }}"
+#     host: "{{ cp4ba_k8s_host | default(omit) }}"
+#     api_version: v1
+#     kind: Pod
+#     state: absent
+#     namespace: "{{ cp4ba_project_name }}"
+#     name: "{{ item.metadata.name }}"
+#   loop: "{{ pods.resources }}"
 
-- name: Wait for TM Deployment Available State
-  ansible.builtin.include_role:
-    name: common
-    tasks_from: wait-resource-condition
-  vars:
-    common_k8s_api_key: "{{ cp4ba_k8s_api_key | default(omit) }}"
-    common_k8s_host: "{{ cp4ba_k8s_host | default(omit) }}"
-    common_api_version: v1
-    common_resource_kind: Deployment
-    common_resource_name: "{{ cp4ba_cr_meta_name }}-tm-deploy"
-    common_resource_namespace: "{{ cp4ba_project_name }}"
-    common_condition_name: Available
-    common_retries: 80
-    common_delay: 15
+# - name: Wait for TM Deployment Available State
+#   ansible.builtin.include_role:
+#     name: common
+#     tasks_from: wait-resource-condition
+#   vars:
+#     common_k8s_api_key: "{{ cp4ba_k8s_api_key | default(omit) }}"
+#     common_k8s_host: "{{ cp4ba_k8s_host | default(omit) }}"
+#     common_api_version: v1
+#     common_resource_kind: Deployment
+#     common_resource_name: "{{ cp4ba_cr_meta_name }}-tm-deploy"
+#     common_resource_namespace: "{{ cp4ba_project_name }}"
+#     common_condition_name: Available
+#     common_retries: 80
+#     common_delay: 15
 
 - name: Navigator Logon
   ansible.builtin.uri:

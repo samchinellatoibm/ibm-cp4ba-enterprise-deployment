@@ -105,9 +105,9 @@
   ansible.builtin.include_role:
     name: kibana
 
-- name: Install MongoDB
-  ansible.builtin.include_role:
-    name: mongodb
+# - name: Install MongoDB
+#   ansible.builtin.include_role:
+#     name: mongodb
 
 - name: Install Mongo Express
   ansible.builtin.include_role:

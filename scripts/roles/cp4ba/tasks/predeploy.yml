@@ -614,101 +614,101 @@
     src: "{{ cp4ba_output_directory }}/bai-secret.yaml"
 
 # Based on https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/21.0.3?topic=manager-configuring-external-database
-- name: Prepare yaml file for ODM DB Secret
-  ansible.builtin.template:
-    src: odm/odm-db-secret.yaml.j2
-    dest: "{{ cp4ba_output_directory }}/odm-db-secret.yaml"
-    mode: u+rwx
+# - name: Prepare yaml file for ODM DB Secret
+#   ansible.builtin.template:
+#     src: odm/odm-db-secret.yaml.j2
+#     dest: "{{ cp4ba_output_directory }}/odm-db-secret.yaml"
+#     mode: u+rwx
 
-- name: Add ODM DB Secret
-  kubernetes.core.k8s:
-    api_key: "{{ cp4ba_k8s_api_key | default(omit) }}"
-    host: "{{ cp4ba_k8s_host | default(omit) }}"
-    state: present
-    force: false
-    merge_type: merge
-    src: "{{ cp4ba_output_directory }}/odm-db-secret.yaml"
+# - name: Add ODM DB Secret
+#   kubernetes.core.k8s:
+#     api_key: "{{ cp4ba_k8s_api_key | default(omit) }}"
+#     host: "{{ cp4ba_k8s_host | default(omit) }}"
+#     state: present
+#     force: false
+#     merge_type: merge
+#     src: "{{ cp4ba_output_directory }}/odm-db-secret.yaml"
 
 # Based on https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/21.0.3?topic=access-mapping-odm-roles-iam-groups-users
 # Adds cpadmin user to all roles and cpadmins to all groups.
-- name: Prepare yaml file for ODM web security Secret
-  ansible.builtin.template:
-    src: odm/odm-web-security-secret.yaml.j2
-    dest: "{{ cp4ba_output_directory }}/odm-web-security-secret.yaml"
-    mode: u+rwx
+# - name: Prepare yaml file for ODM web security Secret
+#   ansible.builtin.template:
+#     src: odm/odm-web-security-secret.yaml.j2
+#     dest: "{{ cp4ba_output_directory }}/odm-web-security-secret.yaml"
+#     mode: u+rwx
 
-- name: Add ODM web security Secret
-  kubernetes.core.k8s:
-    api_key: "{{ cp4ba_k8s_api_key | default(omit) }}"
-    host: "{{ cp4ba_k8s_host | default(omit) }}"
-    state: present
-    force: false
-    merge_type: merge
-    src: "{{ cp4ba_output_directory }}/odm-web-security-secret.yaml"
+# - name: Add ODM web security Secret
+#   kubernetes.core.k8s:
+#     api_key: "{{ cp4ba_k8s_api_key | default(omit) }}"
+#     host: "{{ cp4ba_k8s_host | default(omit) }}"
+#     state: present
+#     force: false
+#     merge_type: merge
+#     src: "{{ cp4ba_output_directory }}/odm-web-security-secret.yaml"
 
 # Based on https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/21.0.3?topic=services-configuring-decision-runtime
 # Based on https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/21.0.3?topic=services-configuring-mongodb-storage
-- name: Prepare yaml file for ADS Secret
-  ansible.builtin.template:
-    src: ads/ads-secret.yaml.j2
-    dest: "{{ cp4ba_output_directory }}/ads-secret.yaml"
-    mode: u+rwx
+# - name: Prepare yaml file for ADS Secret
+#   ansible.builtin.template:
+#     src: ads/ads-secret.yaml.j2
+#     dest: "{{ cp4ba_output_directory }}/ads-secret.yaml"
+#     mode: u+rwx
 
-- name: Add ADS Secret
-  kubernetes.core.k8s:
-    api_key: "{{ cp4ba_k8s_api_key | default(omit) }}"
-    host: "{{ cp4ba_k8s_host | default(omit) }}"
-    state: present
-    force: false
-    merge_type: merge
-    src: "{{ cp4ba_output_directory }}/ads-secret.yaml"
+# - name: Add ADS Secret
+#   kubernetes.core.k8s:
+#     api_key: "{{ cp4ba_k8s_api_key | default(omit) }}"
+#     host: "{{ cp4ba_k8s_host | default(omit) }}"
+#     state: present
+#     force: false
+#     merge_type: merge
+#     src: "{{ cp4ba_output_directory }}/ads-secret.yaml"
 
-- name: Create Google TLS secret
-  block:
+# - name: Create Google TLS secret
+#   block:
 
-    # Based on https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/21.0.3?topic=manager-configuring-identity-provider-connection point 4.
-    - name: Prepare yaml file for FNCM IDP Secret
-      ansible.builtin.template:
-        src: fncm/fncm-google-idp-secret.yaml.j2
-        dest: "{{ cp4ba_output_directory }}/fncm-google-idp-secret.yaml"
-        mode: u+rwx
+#     # Based on https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/21.0.3?topic=manager-configuring-identity-provider-connection point 4.
+#     - name: Prepare yaml file for FNCM IDP Secret
+#       ansible.builtin.template:
+#         src: fncm/fncm-google-idp-secret.yaml.j2
+#         dest: "{{ cp4ba_output_directory }}/fncm-google-idp-secret.yaml"
+#         mode: u+rwx
 
-    - name: Add FNCM IDP Secret
-      kubernetes.core.k8s:
-        api_key: "{{ cp4ba_k8s_api_key | default(omit) }}"
-        host: "{{ cp4ba_k8s_host | default(omit) }}"
-        state: present
-        force: false
-        merge_type: merge
-        src: "{{ cp4ba_output_directory }}/fncm-google-idp-secret.yaml"
+#     - name: Add FNCM IDP Secret
+#       kubernetes.core.k8s:
+#         api_key: "{{ cp4ba_k8s_api_key | default(omit) }}"
+#         host: "{{ cp4ba_k8s_host | default(omit) }}"
+#         state: present
+#         force: false
+#         merge_type: merge
+#         src: "{{ cp4ba_output_directory }}/fncm-google-idp-secret.yaml"
 
-    - name: Get the cert from an RDP port
-      community.crypto.get_certificate:
-        host: accounts.google.com
-        port: 443
-      run_once: true
-      register: cert
+#     - name: Get the cert from an RDP port
+#       community.crypto.get_certificate:
+#         host: accounts.google.com
+#         port: 443
+#       run_once: true
+#       register: cert
 
-    - name: Set google crt
-      ansible.builtin.set_fact:
-        _google_crt: "{{ cert.cert }}"
+#     - name: Set google crt
+#       ansible.builtin.set_fact:
+#         _google_crt: "{{ cert.cert }}"
 
-    - name: Prepare yaml file for FNCM Google TLS Secret
-      ansible.builtin.template:
-        src: fncm/fncm-google-tls-secret.yaml.j2
-        dest: "{{ cp4ba_output_directory }}/fncm-google-tls-secret.yaml"
-        mode: u+rwx
+#     - name: Prepare yaml file for FNCM Google TLS Secret
+#       ansible.builtin.template:
+#         src: fncm/fncm-google-tls-secret.yaml.j2
+#         dest: "{{ cp4ba_output_directory }}/fncm-google-tls-secret.yaml"
+#         mode: u+rwx
 
-    - name: Add FNCM Google TLS Secret
-      kubernetes.core.k8s:
-        api_key: "{{ cp4ba_k8s_api_key | default(omit) }}"
-        host: "{{ cp4ba_k8s_host | default(omit) }}"
-        state: present
-        force: false
-        merge_type: merge
-        src: "{{ cp4ba_output_directory }}/fncm-google-tls-secret.yaml"
+#     - name: Add FNCM Google TLS Secret
+#       kubernetes.core.k8s:
+#         api_key: "{{ cp4ba_k8s_api_key | default(omit) }}"
+#         host: "{{ cp4ba_k8s_host | default(omit) }}"
+#         state: present
+#         force: false
+#         merge_type: merge
+#         src: "{{ cp4ba_output_directory }}/fncm-google-tls-secret.yaml"
 
-  when: cp4ba_external_share_google | bool
+#   when: cp4ba_external_share_google | bool
 
 # Based on
 # https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/21.0.3?topic=fcm-creating-secrets-protect-sensitive-filenet-content-manager-configuration-data
@@ -729,49 +729,49 @@
 
 # Based on
 # https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/21.0.3?topic=fcm-creating-secrets-protect-sensitive-filenet-content-manager-configuration-data
-- name: Prepare yaml file for IER Secret
-  ansible.builtin.template:
-    src: ier/ier-secret.yaml.j2
-    dest: "{{ cp4ba_output_directory }}/ier-secret.yaml"
-    mode: u+rwx
+# - name: Prepare yaml file for IER Secret
+#   ansible.builtin.template:
+#     src: ier/ier-secret.yaml.j2
+#     dest: "{{ cp4ba_output_directory }}/ier-secret.yaml"
+#     mode: u+rwx
 
-- name: Add IER Secret
-  kubernetes.core.k8s:
-    api_key: "{{ cp4ba_k8s_api_key | default(omit) }}"
-    host: "{{ cp4ba_k8s_host | default(omit) }}"
-    state: present
-    force: false
-    merge_type: merge
-    src: "{{ cp4ba_output_directory }}/ier-secret.yaml"
+# - name: Add IER Secret
+#   kubernetes.core.k8s:
+#     api_key: "{{ cp4ba_k8s_api_key | default(omit) }}"
+#     host: "{{ cp4ba_k8s_host | default(omit) }}"
+#     state: present
+#     force: false
+#     merge_type: merge
+#     src: "{{ cp4ba_output_directory }}/ier-secret.yaml"
 
 # Make sure FNCM secret already exists
-- name: Add FPOS OS to FNCM Secret
-  kubernetes.core.k8s:
-    api_key: "{{ cp4ba_k8s_api_key | default(omit) }}"
-    host: "{{ cp4ba_k8s_host | default(omit) }}"
-    state: present
-    api_version: v1
-    kind: Secret
-    name: ibm-fncm-secret
-    namespace: "{{ cp4ba_project_name }}"
-    definition:
-      data:
-        fposDBUsername: "{{ 'fpos' | b64encode }}"
-        fposDBPassword: "{{ cp4ba_universal_password | b64encode }}"
+# - name: Add FPOS OS to FNCM Secret
+#   kubernetes.core.k8s:
+#     api_key: "{{ cp4ba_k8s_api_key | default(omit) }}"
+#     host: "{{ cp4ba_k8s_host | default(omit) }}"
+#     state: present
+#     api_version: v1
+#     kind: Secret
+#     name: ibm-fncm-secret
+#     namespace: "{{ cp4ba_project_name }}"
+#     definition:
+#       data:
+#         fposDBUsername: "{{ 'fpos' | b64encode }}"
+#         fposDBPassword: "{{ cp4ba_universal_password | b64encode }}"
 
-- name: Add ROS OS to FNCM Secret
-  kubernetes.core.k8s:
-    api_key: "{{ cp4ba_k8s_api_key | default(omit) }}"
-    host: "{{ cp4ba_k8s_host | default(omit) }}"
-    state: present
-    api_version: v1
-    kind: Secret
-    name: ibm-fncm-secret
-    namespace: "{{ cp4ba_project_name }}"
-    definition:
-      data:
-        rosDBUsername: "{{ 'ros' | b64encode }}"
-        rosDBPassword: "{{ cp4ba_universal_password | b64encode }}"
+# - name: Add ROS OS to FNCM Secret
+#   kubernetes.core.k8s:
+#     api_key: "{{ cp4ba_k8s_api_key | default(omit) }}"
+#     host: "{{ cp4ba_k8s_host | default(omit) }}"
+#     state: present
+#     api_version: v1
+#     kind: Secret
+#     name: ibm-fncm-secret
+#     namespace: "{{ cp4ba_project_name }}"
+#     definition:
+#       data:
+#         rosDBUsername: "{{ 'ros' | b64encode }}"
+#         rosDBPassword: "{{ cp4ba_universal_password | b64encode }}"
 
 # Based on https://www.ibm.com/docs/en/cloud-paks/cp-biz-automation/21.0.3?topic=engine-creating-secrets-protect-sensitive-configuration-data
 - name: Prepare yaml file for AAE Secret
